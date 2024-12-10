@@ -17,6 +17,9 @@ FLOAT      ([0-9]+\.[0-9]+|\([+|-][0-9]+\.[0-9]+\))
 CHAR       ([a-zA-Z])
 MESSAGE    \"[^\"]*\"
 CONST "CONST"
+FOR        "FOR"
+IF         "IF"           
+ELSE       "ELSE"
 
 %%
 [ \t\r]+               { /* Ignore whitespace */ }
@@ -35,6 +38,10 @@ CONST "CONST"
 "["                    { printf("left bracket detected\n"); return LSQUARE; } 
 "]"                    { printf("right bracket detected\n"); return RSQUARE; } 
 "("                    { printf("left parenthesis detected\n"); return LPAREN; }
+":"                    { printf("colon detected\n"); return COLON; }
+"FOR"                  { printf("FOR loop detected\n"); return FOR; }
+"IF"                   { printf("IF detected\n"); return IF; }
+"ELSE"                 { printf("ELSE detected\n"); return ELSE; }
 ")"                    { printf("right parenthesis detected\n"); return RPAREN; } 
 {ID}                   { 
                             if(strlen(yytext) > 8) {
