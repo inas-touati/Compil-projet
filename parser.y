@@ -1,8 +1,10 @@
 %{
     #include <stdio.h>
     #include <stdlib.h>
-    /*#include "TS.h"*/
-
+	#include <string.h>
+	
+	 /*#include "TS.h"*/
+	
     int yylex();
     void yyerror(const char *s); 
 %}
@@ -15,12 +17,12 @@
 
 %token VAR_GLOBAL DECLARATION INSTRUCTION
 %token FLOAT_KWD INTEGER_KWD CHAR_KWD CONST
-%token LBRACE RBRACE LPAREN RPAREN LSQUARE RSQUARE SEMICOLON VIRGULE
-%token READ WRITE ASSIGN_OP
+%token LBRACE RBRACE LPAREN RPAREN LSQUARE RSQUARE SEMICOLON VIRGULE COLON
+%token READ WRITE ASSIGN_OP FOR IF ELSE 
 %token <fval> FLOAT
 %token <ival> INTEGER
 %token <sval> ID MESSAGE CHAR
-%left PLUS MINUS MULT DIV
+%left PLUS MINUS MULT DIV 
 
 %%
 
@@ -45,14 +47,14 @@ liste_var:
 
 liste_idf:
     ID VIRGULE liste_idf                                         { printf("VALID list of identifiers\n");}
-    |ID                                                          { printf("VALID identifier\n"); }
-    |ID assignment                                               { printf("VALID assignment\n"); }
-    |ID LSQUARE INTEGER RSQUARE                                  { printf("VALID array\n"); }
+    | ID                                                         { printf("VALID identifier\n"); }
+    | ID assignment                                              { printf("VALID assignment\n"); }
+    | ID LSQUARE INTEGER RSQUARE                                 { printf("VALID array\n"); }
     ;
 
 assignment:
      ASSIGN_OP arithmetic_expression                             { printf("VALID arithmetic operation assignment\n"); }
-    |ASSIGN_OP CHAR                                              { printf("VALID assignment\n"); }
+    | ASSIGN_OP CHAR                                             { printf("VALID assignment\n"); }
     ;
 
 arithmetic_expression:
@@ -74,14 +76,37 @@ factor:
     ;
 
 instruction_section:
-    INSTRUCTION LBRACE instruction_liste RBRACE                  { printf("VALID INSTRUCTION section\n");  }
+    INSTRUCTION LBRACE instruction_liste RBRACE                  { printf("VALID INSTRUCTION section\n"); }
     | /* epsilon */
     ;
-  
+
 instruction_liste:
     read_instruction
     | write_instruction
+    | for_instruction 
+	|if_else_instruction	
     | /* epsilon */
+    ;
+
+for_instruction:
+    FOR LPAREN ID assignment COLON INTEGER COLON condition RPAREN LBRACE instruction_liste RBRACE 
+    {
+        printf("VALID FOR loop with initial assignment, step, and condition\n");
+    }
+    ;
+	
+	
+if_else_instruction:
+    IF LPAREN condition RPAREN LBRACE instruction_liste RBRACE
+        { printf("VALID IF block\n"); }
+    | IF LPAREN ID condition RPAREN LBRACE instruction_liste RBRACE ELSE LBRACE instruction_liste RBRACE
+        { printf("VALID IF-ELSE block\n"); }
+    | IF LPAREN ID condition RPAREN LBRACE instruction_liste RBRACE ELSE if_else_instruction
+        { printf("VALID nested IF-ELSE block\n"); }
+    ;
+
+condition:
+    arithmetic_expression                                        { printf("VALID condition\n"); }
     ;
 
 read_instruction:
@@ -104,6 +129,7 @@ type:
     ;
 
 %%
+
 int main() {
     printf("Parsing starts\n");
     if (yyparse() == 0) {
@@ -114,9 +140,7 @@ int main() {
     return 0;
 }
 
- 
- void yyerror(const char *s) {
+void yyerror(const char *s) {
     fprintf(stderr, "Erreur syntaxique: %s\n", s);
     exit(1);
 }
-
